@@ -7,7 +7,7 @@ const A='/assets/';
 export const AVATAR_FILES=['avatar-1-Raccoon.png','avatar-2-parrot.png','avatar-3-turtle.png','avatar-4-lion.png','avatar-5-tiger.png','avatar-6-wolf.png','avatar-7-dragon.png','avatar-8-shark.png','avatar-9-panda.png','avatar-10-bear.png','avatar-11-fox.png','avatar-12-owl.png','avatar-13-rabbit.png','avatar-14-frog.png','avatar-15-monkey.png','avatar-16-butterfly.png','avatar-17-bee.png'];
 export const avatarPath=(i:number)=>`${A}images/avatars/${AVATAR_FILES[i%AVATAR_FILES.length]}`;
 
-const sfx:Record<string,string>={default:'sfx-button-default.wav',selected:'sfx-card-selected.wav',start:'sfx-game-start.wav',contact:'sfx-contact-start.wav',result:'sfx-contact-result.wav',move:'sfx-card-movement.wav',process:'sfx-calculation-processing.wav'};
+const sfx:Record<string,string>={default:'sfx-button-default.wav',countdown:'sfx-countdown.wav',selected:'sfx-card-selected.wav',start:'sfx-game-start.wav',contact:'sfx-contact-start.wav',result:'sfx-contact-result.wav',move:'sfx-card-movement.wav',process:'sfx-calculation-processing.wav'};
 export function playSfx(kind:keyof typeof sfx='default'){const audio=new Audio(`${A}audio/sfx/${sfx[kind]}`);audio.volume=.55;void audio.play().catch(()=>{});}
 export function SoundLayer(){useEffect(()=>{const click=(e:MouseEvent)=>{const button=(e.target as HTMLElement).closest('button,a.button,a.display-launch');if(!button)return;const text=button.textContent||'';playSfx(/결과 공개/.test(text)?'result':/시크릿 넘버 시작/.test(text)?'start':/티켓|콘택트/.test(text)?'contact':/카드 선택/.test(text)?'selected':'default')};document.addEventListener('click',click);return()=>document.removeEventListener('click',click)},[]);return null}
 
