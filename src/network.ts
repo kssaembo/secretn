@@ -6,14 +6,16 @@ const peerId = (code:string) => `secret-number-class-${code.toLowerCase()}`;
 export class HostNetwork {
   private peer:Peer; private connections=new Set<DataConnection>();
   onMessage?: (message:ClientMessage, connection:DataConnection)=>void;
+  onDisconnect?: (connection:DataConnection)=>void;
   onStatus?: (count:number)=>void;
   constructor(code:string){
     this.peer=new Peer(peerId(code));
     this.peer.on('connection',conn=>{
       this.connections.add(conn); this.onStatus?.(this.connections.size);
       conn.on('data',data=>this.onMessage?.(data as ClientMessage,conn));
-      conn.on('close',()=>{this.connections.delete(conn);this.onStatus?.(this.connections.size)});
-      conn.on('error',()=>{this.connections.delete(conn);this.onStatus?.(this.connections.size)});
+      const remove=()=>{if(!this.connections.delete(conn))return;this.onDisconnect?.(conn);this.onStatus?.(this.connections.size)};
+      conn.on('close',remove);
+      conn.on('error',remove);
     });
   }
   send(conn:DataConnection,message:HostMessage){if(conn.open) conn.send(message)}

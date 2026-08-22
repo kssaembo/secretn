@@ -16,7 +16,7 @@ export interface GameState {
   submissions: GuessSheet[]; logs: GameLog[]; createdAt: number;
 }
 export type PublicPlayer = Omit<Player, 'secretNumber'|'tickets'>;
-export interface PublicState extends Omit<GameState, 'players'|'submissions'> { players: PublicPlayer[]; allSubmitted: boolean }
+export interface PublicState extends Omit<GameState, 'players'|'submissions'> { players: PublicPlayer[]; allSubmitted: boolean; revealed?: { players: Player[]; submissions: GuessSheet[] } }
 
 export type ClientRole = 'station' | 'submission';
 export type ClientMessage =
@@ -24,6 +24,7 @@ export type ClientMessage =
   | { type:'SELECT_PLAYER'; roomId:number; seat:number; playerId:string; requestId:string }
   | { type:'SELECT_TICKET'; roomId:number; seat:number; ticket:TicketType; requestId:string }
   | { type:'SUBMIT_CONTACT'; roomId:number; requestId:string }
+  | { type:'RESET_ROOM'; roomId:number; requestId:string }
   | { type:'SUBMIT_SHEET'; sheet:GuessSheet; requestId:string }
   | { type:'PING'; at:number };
 export type HostMessage =

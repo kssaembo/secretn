@@ -42,7 +42,7 @@ export function scoreSheets(state:GameState):GameState {
 }
 export function publicState(s:GameState):PublicState {
   const {submissions,...rest}=s;
-  return {...rest,players:s.players.map(({secretNumber:_,tickets:__,...p})=>p),allSubmitted:s.players.length>0&&submissions.length===s.players.length};
+  return {...rest,players:s.players.map(({secretNumber:_,tickets:__,...p})=>p),allSubmitted:s.players.length>0&&submissions.length===s.players.length,revealed:s.phase==='results'?{players:s.players,submissions}:undefined};
 }
 export function addSheet(state:GameState,sheet:GuessSheet):GameState {
   if(state.submissions.some(s=>s.playerId===sheet.playerId)) return state;
