@@ -3,7 +3,8 @@ import type { ContactRoom, Difficulty, GameState, GuessSheet, Player, PublicStat
 export const AVATARS = ['lion','tiger','eagle','wolf','bear','fox','owl','dragon','shark','panther','rabbit','deer','falcon','whale','horse'];
 const COLORS = ['#f59e0b','#3b82f6','#a855f7','#ef4444','#10b981','#06b6d4','#ec4899','#84cc16'];
 const LIMIT: Record<Difficulty, number> = { low:30, medium:60, high:100 };
-const ticketSet = (): Player['tickets'] => ({ plus:3, multiply:3, divide:3, zero:3 });
+export const TICKET_LIMIT = 2;
+const ticketSet = (): Player['tickets'] => ({ plus:TICKET_LIMIT, multiply:TICKET_LIMIT, divide:TICKET_LIMIT, zero:TICKET_LIMIT });
 const id = () => crypto.randomUUID();
 
 export function createGame(names:string[], durationMinutes:number, difficulty:Difficulty, roomCount:number):GameState {
@@ -42,11 +43,11 @@ export function scoreSheets(state:GameState):GameState {
 }
 export function publicState(s:GameState):PublicState {
   const {submissions,...rest}=s;
-  return {...rest,players:s.players.map(({secretNumber:_,tickets:__,...p})=>p),allSubmitted:s.players.length>0&&submissions.length===s.players.length,revealed:s.phase==='results'?{players:s.players,submissions}:undefined};
+  return {...rest,players:s.players.map(({secretNumber:_,...p})=>p),allSubmitted:s.players.length>0&&submissions.length===s.players.length,revealed:s.phase==='results'?{players:s.players,submissions}:undefined};
 }
 export function addSheet(state:GameState,sheet:GuessSheet):GameState {
   if(state.submissions.some(s=>s.playerId===sheet.playerId)) return state;
   return bump(state,{submissions:[...state.submissions,sheet],players:state.players.map(p=>p.id===sheet.playerId?{...p,submitted:true}:p),logs:addLog(state,'submission',`${state.players.find(p=>p.id===sheet.playerId)?.name} 결과지 제출 완료`,[sheet.playerId])});
 }
 export function bump(state:GameState, patch:Partial<GameState>):GameState { return {...state,...patch,version:state.version+1}; }
-export function addLog(state:GameState,kind:string,text:string,playerIds?:string[]){ return [...state.logs,{id:id(),at:Date.now(),kind,text,playerIds}]; }
+export function addLog(state:GameState,kind:string,text:string,playerIds?:string[],ticketType?:TicketType){ return [...state.logs,{id:id(),at:Date.now(),kind,text,playerIds,ticketType}]; }

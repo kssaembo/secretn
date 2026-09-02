@@ -9,13 +9,13 @@ export interface Player {
 export interface ContactSeat { deviceId?: string; playerId?: string; ticket?: TicketType; ready: boolean }
 export interface ContactRoom { id: number; seats: [ContactSeat, ContactSeat]; status: 'waiting'|'choosing'|'processing'|'result'; result?: string; updatedAt: number }
 export interface GuessSheet { playerId: string; ownGuess: number; guesses: Record<string, number>; submittedAt: number }
-export interface GameLog { id: string; at: number; kind: string; text: string; playerIds?: string[] }
+export interface GameLog { id: string; at: number; kind: string; text: string; playerIds?: string[]; ticketType?: TicketType }
 export interface GameState {
   version: number; roomCode: string; phase: Phase; difficulty: Difficulty; durationSeconds: number;
   remainingSeconds: number; timerRunning: boolean; players: Player[]; rooms: ContactRoom[];
   submissions: GuessSheet[]; logs: GameLog[]; createdAt: number;
 }
-export type PublicPlayer = Omit<Player, 'secretNumber'|'tickets'>;
+export type PublicPlayer = Omit<Player, 'secretNumber'>;
 export interface PublicState extends Omit<GameState, 'players'|'submissions'> { players: PublicPlayer[]; allSubmitted: boolean; revealed?: { players: Player[]; submissions: GuessSheet[] } }
 
 export type ClientRole = 'station' | 'submission';

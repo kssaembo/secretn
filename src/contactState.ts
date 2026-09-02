@@ -16,3 +16,11 @@ export function canSubmitSeat(room:ContactRoom,seatIndex:number):boolean{
 export function isRoomInUse(room:ContactRoom):boolean{
   return room.seats.some(seat=>Boolean(seat.playerId))||room.status==='processing'||room.status==='result';
 }
+export function isPlayerAlreadyInRoom(room:ContactRoom,playerId:string,requestingSeat:number):boolean{
+  return room.seats.some((seat,index)=>index!==requestingSeat&&seat.playerId===playerId);
+}
+export function findSeatForDevice(room:ContactRoom,deviceId:string):number{
+  const existing=room.seats.findIndex(seat=>seat.deviceId===deviceId);
+  if(existing>=0)return existing;
+  return room.seats.findIndex(seat=>!seat.deviceId);
+}
