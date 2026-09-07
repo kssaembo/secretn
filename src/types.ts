@@ -6,14 +6,15 @@ export interface Player {
   id: string; name: string; avatar: string; color: string; secretNumber?: number;
   tickets: Record<TicketType, number>; submitted: boolean; score: number;
 }
-export interface ContactSeat { deviceId?: string; playerId?: string; ticket?: TicketType; ready: boolean }
+export interface ContactSeat { deviceId?: string; playerId?: string; ticket?: TicketType; ready: boolean; connected?: boolean; lastSeen?: number }
 export interface ContactRoom { id: number; seats: [ContactSeat, ContactSeat]; status: 'waiting'|'choosing'|'processing'|'result'; result?: string; updatedAt: number }
+export interface ContactTransaction { id:string; roomId:number; result:string; at:number }
 export interface GuessSheet { playerId: string; ownGuess: number; guesses: Record<string, number>; submittedAt: number }
 export interface GameLog { id: string; at: number; kind: string; text: string; playerIds?: string[]; ticketType?: TicketType }
 export interface GameState {
   version: number; roomCode: string; phase: Phase; difficulty: Difficulty; durationSeconds: number;
   remainingSeconds: number; timerRunning: boolean; players: Player[]; rooms: ContactRoom[];
-  submissions: GuessSheet[]; logs: GameLog[]; createdAt: number;
+  submissions: GuessSheet[]; logs: GameLog[]; createdAt: number; contactTransactions?: ContactTransaction[];
 }
 export type PublicPlayer = Omit<Player, 'secretNumber'>;
 export interface PublicState extends Omit<GameState, 'players'|'submissions'> { players: PublicPlayer[]; allSubmitted: boolean; revealed?: { players: Player[]; submissions: GuessSheet[] } }

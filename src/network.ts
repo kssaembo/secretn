@@ -16,13 +16,14 @@ export class HostNetwork {
   private lastSeen=new Map<DataConnection,number>();
   private heartbeatTimer:ReturnType<typeof setInterval>;
   private reconnectTimer?:ReturnType<typeof setTimeout>;
+  private reconnectAttempts=0;
   private destroyed=false;
   onMessage?: (message:ClientMessage, connection:DataConnection)=>void;
   onDisconnect?: (connection:DataConnection)=>void;
   onStatus?: (count:number)=>void;
   onServerStatus?: (status:HostStatus, message?:string)=>void;
 
-  constructor(code:string){
+  constructor(private code:string){
     this.peer=this.createPeer(code);
     this.heartbeatTimer=setInterval(()=>this.removeExpiredConnections(),HEARTBEAT_MS);
   }
@@ -30,7 +31,13 @@ export class HostNetwork {
   private createPeer(code:string){
     const peer=new Peer(peerId(code));
     this.onServerStatus?.('connecting');
-    peer.on('open',()=>this.onServerStatus?.('online'));
+    peer.on('open',()=>{
+      if(this.destroyed||peer!==this.peer)return;
+      this.reconnectAttempts=0;
+      if(this.reconnectTimer)clearTimeout(this.reconnectTimer);
+      this.reconnectTimer=undefined;
+      this.onServerStatus?.('online');
+    });
     peer.on('connection',conn=>{
       this.connections.add(conn);
       this.lastSeen.set(conn,Date.now());
@@ -44,17 +51,37 @@ export class HostNetwork {
       conn.on('error',remove);
     });
     peer.on('disconnected',()=>{
-      if(this.destroyed)return;
-      this.onServerStatus?.('reconnecting','교사 연결 서버와 다시 연결하고 있습니다.');
-      if(this.reconnectTimer)return;
-      this.reconnectTimer=setTimeout(()=>{
-        this.reconnectTimer=undefined;
-        if(this.destroyed||!peer.disconnected)return;
-        try{peer.reconnect()}catch(error){this.onServerStatus?.('error',this.errorMessage(error))}
-      },1_000);
+      this.scheduleReconnect(peer);
     });
-    peer.on('error',error=>this.onServerStatus?.('error',this.hostErrorMessage(error)));
+    peer.on('error',error=>{
+      const raw=this.errorMessage(error);
+      this.onServerStatus?.('error',this.hostErrorMessage(error));
+      if(/network|server|socket|disconnected|browser-incompatible/i.test(raw))this.scheduleReconnect(peer,true);
+    });
     return peer;
+  }
+
+  private scheduleReconnect(peer:Peer,recreate=false){
+    if(this.destroyed||peer!==this.peer||this.reconnectTimer)return;
+    this.onServerStatus?.('reconnecting','교사 연결 서버와 다시 연결하고 있습니다.');
+    const delay=Math.min(8_000,500*2**this.reconnectAttempts++);
+    this.reconnectTimer=setTimeout(()=>{
+      this.reconnectTimer=undefined;
+      if(this.destroyed||peer!==this.peer)return;
+      try{
+        if(recreate||peer.destroyed){
+          if(!peer.destroyed)peer.destroy();
+          this.peer=this.createPeer(this.code);
+        }else if(peer.disconnected){
+          peer.reconnect();
+        }
+      }catch(error){
+        this.onServerStatus?.('error',this.errorMessage(error));
+        try{peer.destroy()}catch{}
+        this.peer=this.createPeer(this.code);
+      }
+      if(!this.destroyed)this.scheduleReconnect(this.peer);
+    },delay);
   }
 
   private hostErrorMessage(error:unknown){

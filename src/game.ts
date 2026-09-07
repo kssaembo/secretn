@@ -11,7 +11,7 @@ export function createGame(names:string[], durationMinutes:number, difficulty:Di
   const roomCode = Math.random().toString(36).slice(2,8).toUpperCase();
   const players = names.slice(0,30).map((name,i):Player => ({ id:id(), name:name.trim(), avatar:AVATARS[i%AVATARS.length], color:COLORS[i%COLORS.length], tickets:ticketSet(), submitted:false, score:0 }));
   const rooms:ContactRoom[] = Array.from({length:roomCount},(_,i)=>({ id:i+1, seats:[{ready:false},{ready:false}], status:'waiting', updatedAt:Date.now() }));
-  return { version:1, roomCode, phase:'draw', difficulty, durationSeconds:durationMinutes*60, remainingSeconds:durationMinutes*60, timerRunning:false, players, rooms, submissions:[], logs:[], createdAt:Date.now() };
+  return { version:1, roomCode, phase:'draw', difficulty, durationSeconds:durationMinutes*60, remainingSeconds:durationMinutes*60, timerRunning:false, players, rooms, submissions:[], logs:[], createdAt:Date.now(), contactTransactions:[] };
 }
 export function assignNumbers(state:GameState):GameState {
   const pool=Array.from({length:LIMIT[state.difficulty]},(_,i)=>i+1);
