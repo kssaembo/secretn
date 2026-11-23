@@ -19,7 +19,7 @@ export interface GameState {
 export type PublicPlayer = Omit<Player, 'secretNumber'>;
 export interface PublicState extends Omit<GameState, 'players'|'submissions'> { players: PublicPlayer[]; allSubmitted: boolean; revealed?: { players: Player[]; submissions: GuessSheet[] } }
 
-export type ClientRole = 'station' | 'submission';
+export type ClientRole = 'station' | 'submission' | 'display';
 export type ClientMessage =
   | { type:'HELLO'; role:ClientRole; deviceId:string; roomId?:number }
   | { type:'SELECT_PLAYER'; roomId:number; seat:number; playerId:string; requestId:string }
